@@ -1,0 +1,69 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background: #EDEBE6;
+}
+.font-display {
+    font-family: 'Barlow Condensed', sans-serif;
+}
+.leaflet-container {
+    font-family: 'Inter', sans-serif;
+    border-radius: 0.75rem;
+}
+.hazard-diamond {
+    width: 2.75rem;
+    height: 2.75rem;
+    background: var(--diamond-color, #E85D2C);
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+}
+.hazard-diamond span {
+    transform: rotate(-45deg);
+}
+.crack-divider {
+    display: block;
+    width: 100%;
+    height: 14px;
+    opacity: 0.5;
+}
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background: #383B42;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+.tape-stripe {
+    background-image: repeating-linear-gradient(
+        45deg,
+        #F2B705,
+        #F2B705 12px,
+        #24262B 12px,
+        #24262B 24px
+    );
+}
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible {
+    outline: 2px solid #E85D2C;
+    outline-offset: 2px;
+}
+img {
+    max-width: 100%;
+    display: block;
+}
+button {
+    cursor: pointer;
+}
+textarea {
+    resize: vertical;
+}

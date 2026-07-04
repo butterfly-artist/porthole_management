@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PATCH — GHMC Pothole Response System</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        asphalt: { DEFAULT: "#24262B", light: "#383B42", dark: "#17181B" },
+                        concrete: { DEFAULT: "#EDEBE6", dark: "#DAD6CC" },
+                        hazard: { DEFAULT: "#E85D2C", dark: "#C94A1F" },
+                        caution: { DEFAULT: "#F2B705" },
+                        okgreen: { DEFAULT: "#3FA34D" },
+                        danger: { DEFAULT: "#D64545" }
+                    },
+                    fontFamily: {
+                        display: ['"Barlow Condensed"', "sans-serif"],
+                        body: ['"Inter"', "sans-serif"],
+                        mono: ['"JetBrains Mono"', "monospace"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-concrete text-asphalt">
+    <div id="root"></div>
+    <script type="text/babel" src="app.js"></script>
+</body>
+</html>
