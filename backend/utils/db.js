@@ -1,6 +1,5 @@
 // Lightweight file-based "database" — perfect for a hackathon MVP.
 // Swap this module out for a real MongoDB/PostgreSQL layer later without
-
 // touching the route logic, since everything goes through readDB/writeDB.
 const fs = require("fs");
 const path = require("path");

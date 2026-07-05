@@ -22,7 +22,9 @@ pothole-management-system/
 │   │   └── geo.js        haversine distance + priority score
 │   └── data/db.json      seeded with one admin account
 └── frontend/
-    └── index.html        React + Tailwind + Leaflet, single file, no build step
+    ├── index.html        Page shell — loads React/Tailwind/Leaflet from CDN + app.js
+    ├── app.js            All React components (Babel-compiled in the browser, no build step)
+    └── style.css         Hand-written styles (hazard diamond, crack divider, etc.)
 ```
 
 ## Running it
@@ -48,9 +50,23 @@ password: admin123
 
 ### 2. Frontend
 
-Just open `frontend/index.html` in a browser (double-click it, or serve it
-with any static file server). It talks to `http://localhost:5000/api` by
-default.
+`index.html` loads `app.js` as an external `<script type="text/babel" src="app.js">`.
+Babel Standalone fetches that file at runtime to compile it — which means
+**this must be served over HTTP, not opened directly from disk.** Double-
+clicking `index.html` (a `file://` URL) will fail in Chrome/Edge because
+browsers block that fetch for local files; some browsers (Firefox) allow it,
+but don't rely on that.
+
+From the `frontend/` folder, run any static file server, e.g.:
+
+```bash
+cd frontend
+python3 -m http.server 8080
+# or: npx serve .
+```
+
+Then open `http://localhost:8080`. It talks to `http://localhost:5000/api`
+by default.
 
 **No backend running?** The page detects that automatically and switches to
 a demo dataset so you can still click through the whole flow — a yellow
