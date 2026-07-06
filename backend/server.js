@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
@@ -19,4 +20,9 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Pothole Management API listening on http://localhost:${PORT}`);
+  console.log(
+    process.env.GEMINI_API_KEY
+      ? "Gemini image analysis: ENABLED"
+      : "Gemini image analysis: disabled (set GEMINI_API_KEY in backend/.env to enable — see .env.example)"
+  );
 });

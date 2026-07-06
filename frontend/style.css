@@ -1,6 +1,10 @@
 body {
     font-family: 'Inter', sans-serif;
     background: #EDEBE6;
+    overscroll-behavior-y: contain; /* stop map drags from triggering mobile pull-to-refresh */
+}
+html {
+    overscroll-behavior-y: contain;
 }
 .font-display {
     font-family: 'Barlow Condensed', sans-serif;

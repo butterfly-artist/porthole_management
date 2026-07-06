@@ -58,10 +58,10 @@ const SAMPLE_IMG = "data:image/svg+xml;base64," + btoa(
 
 let demoStore = {
   potholes: [
-    makeDemoPothole({ location: { lat: 17.3860, lng: 78.4870 }, severity: 9, reportCount: 14, status: "Reported", createdDate: new Date(Date.now() - 6 * 86400000).toISOString(), images: [SAMPLE_IMG] }),
-    makeDemoPothole({ location: { lat: 17.4030, lng: 78.4560 }, severity: 6, reportCount: 4, status: "Assigned", assignedCrew: "Crew Alpha", createdDate: new Date(Date.now() - 2 * 86400000).toISOString(), images: [SAMPLE_IMG] }),
-    makeDemoPothole({ location: { lat: 17.3600, lng: 78.4740 }, severity: 3, reportCount: 1, status: "In Progress", assignedCrew: "Crew Bravo", createdDate: new Date(Date.now() - 1 * 86400000).toISOString(), images: [SAMPLE_IMG] }),
-    makeDemoPothole({ location: { lat: 17.4400, lng: 78.4980 }, severity: 8, reportCount: 2, status: "Completed", createdDate: new Date(Date.now() - 10 * 86400000).toISOString(), images: [SAMPLE_IMG] }),
+    makeDemoPothole({ location: { lat: 17.3860, lng: 78.4870 }, severity: 9, reportCount: 14, status: "Reported", createdDate: new Date(Date.now() - 6 * 86400000).toISOString(), images: [SAMPLE_IMG], address: "Tank Bund Road, Hyderabad, Telangana", aiAnalysis: { skipped: false, isPothole: true, confidence: 0.94, severity: 9, depthEstimate: "deep", reasoning: "Large, deep pothole with exposed gravel spanning most of the lane." } }),
+    makeDemoPothole({ location: { lat: 17.4030, lng: 78.4560 }, severity: 6, reportCount: 4, status: "Assigned", assignedCrew: "Crew Alpha", createdDate: new Date(Date.now() - 2 * 86400000).toISOString(), images: [SAMPLE_IMG], address: "Road No. 12, Banjara Hills, Hyderabad, Telangana", aiAnalysis: { skipped: false, isPothole: true, confidence: 0.81, severity: 6, depthEstimate: "moderate", reasoning: "Moderate-sized pothole visible near the road edge." } }),
+    makeDemoPothole({ location: { lat: 17.3600, lng: 78.4740 }, severity: 3, reportCount: 1, status: "In Progress", assignedCrew: "Crew Bravo", createdDate: new Date(Date.now() - 1 * 86400000).toISOString(), images: [SAMPLE_IMG], address: "Malakpet Main Road, Hyderabad, Telangana", aiAnalysis: { skipped: false, isPothole: true, confidence: 0.68, severity: 3, depthEstimate: "shallow", reasoning: "Small shallow depression, low immediate hazard." } }),
+    makeDemoPothole({ location: { lat: 17.4400, lng: 78.4980 }, severity: 8, reportCount: 2, status: "Completed", createdDate: new Date(Date.now() - 10 * 86400000).toISOString(), images: [SAMPLE_IMG], address: "Secunderabad Station Road, Secunderabad, Telangana", aiAnalysis: { skipped: false, isPothole: true, confidence: 0.88, severity: 8, depthEstimate: "deep", reasoning: "Deep pothole close to a pedestrian crossing." } }),
   ],
 };
 
@@ -116,6 +116,8 @@ const demoApi = {
     }
     const fresh = makeDemoPothole({
       location: { lat, lng }, severity, images: [image],
+      address: "Nearby road, Hyderabad, Telangana (demo address — connect the backend for real reverse geocoding)",
+      aiAnalysis: { skipped: false, isPothole: true, confidence: 0.75, severity, depthEstimate: severity >= 7 ? "deep" : severity >= 4 ? "moderate" : "shallow", reasoning: "Demo mode — connect GEMINI_API_KEY on the backend for real AI analysis." },
       reports: [{ userId, image, note, timestamp: new Date().toISOString() }],
     });
     demoStore.potholes.push(fresh);
@@ -158,6 +160,20 @@ function PriorityDiamond({ score, label }) {
   );
 }
 
+function AiBadge({ aiAnalysis }) {
+  if (!aiAnalysis || aiAnalysis.skipped) return null;
+  const depthColors = { deep: "text-danger", moderate: "text-hazard", shallow: "text-caution", unknown: "text-asphalt/50" };
+  return (
+    <div className="inline-flex items-center gap-1.5 text-xs bg-asphalt/5 rounded-full px-2.5 py-1" title={aiAnalysis.reasoning}>
+      <span aria-hidden="true">🤖</span>
+      <span className={`font-semibold ${depthColors[aiAnalysis.depthEstimate] || "text-asphalt/70"}`}>
+        {aiAnalysis.depthEstimate !== "unknown" ? `${aiAnalysis.depthEstimate} damage` : "AI reviewed"}
+      </span>
+      <span className="text-asphalt/40">· {Math.round(aiAnalysis.confidence * 100)}% conf.</span>
+    </div>
+  );
+}
+
 const STATUS_STEPS = ["Reported", "Verified", "Assigned", "In Progress", "Completed"];
 function StatusPill({ status }) {
   const styles = {
@@ -185,6 +201,49 @@ function Banner({ backendOnline }) {
     <div className="bg-caution text-asphalt text-sm font-medium px-4 py-2 text-center">
       Demo mode — the Node/Express backend isn't running, so this preview uses sample data.
       Start <code className="font-mono bg-asphalt/10 px-1 rounded">backend/server.js</code> and refresh to go live.
+    </div>
+  );
+}
+
+function Lightbox({ lightbox, onClose, onStep }) {
+  const { images, index, title } = lightbox;
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") onStep(1);
+      if (e.key === "ArrowLeft") onStep(-1);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, onStep]);
+
+  return (
+    <div className="fixed inset-0 bg-asphalt-dark/90 z-50 flex items-center justify-center p-6" onClick={onClose}>
+      <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-white/70 font-mono text-sm">{title} · photo {index + 1} of {images.length}</div>
+          <button onClick={onClose} className="text-white/70 hover:text-white text-2xl leading-none px-2">×</button>
+        </div>
+        <div className="relative bg-asphalt rounded-xl overflow-hidden flex items-center justify-center" style={{ minHeight: "300px" }}>
+          <img src={images[index]} alt={`Evidence ${index + 1}`} className="max-h-[70vh] w-full object-contain" />
+          {images.length > 1 && (
+            <React.Fragment>
+              <button onClick={() => onStep(-1)} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-9 h-9 rounded-full">‹</button>
+              <button onClick={() => onStep(1)} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-9 h-9 rounded-full">›</button>
+            </React.Fragment>
+          )}
+        </div>
+        {images.length > 1 && (
+          <div className="flex gap-2 mt-3 overflow-x-auto">
+            {images.map((img, i) => (
+              <button key={i} onClick={() => onStep(i - index)}
+                className={`w-14 h-14 rounded-md overflow-hidden flex-shrink-0 border-2 ${i === index ? "border-hazard" : "border-transparent opacity-60"}`}>
+                <img src={img} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -224,10 +283,12 @@ function MapView({ potholes, height = "420px", pickMode = false, onPick, pickedL
         color: "#24262B", weight: 1.5, fillColor: color, fillOpacity: 0.85,
       });
       marker.bindPopup(
-        `<div style="font-family:Inter,sans-serif;min-width:160px">
+        `<div style="font-family:Inter,sans-serif;min-width:180px">
+          ${p.images && p.images[0] ? `<img src="${p.images[0]}" style="width:100%;height:90px;object-fit:cover;border-radius:6px;margin-bottom:6px;" />` : ""}
           <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;">Priority ${p.priorityScore} · ${p.priorityLabel}</div>
           <div style="font-size:12px;margin-top:2px;">Status: <b>${p.status}</b></div>
           <div style="font-size:12px;">Reports: ${p.reportCount} · Severity: ${p.severity}/10</div>
+          ${p.address ? `<div style="font-size:11px;color:#666;margin-top:2px;">${p.address}</div>` : ""}
           ${p.assignedCrew ? `<div style="font-size:12px;">Crew: ${p.assignedCrew}</div>` : ""}
         </div>`
       );
@@ -466,10 +527,14 @@ function CitizenPortal({ backendOnline, setBackendOnline }) {
               <h3 className="font-display text-2xl font-700 mb-3">Your reports</h3>
               <div className="space-y-2">
                 {myReports.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between border-b last:border-0 border-asphalt/10 py-2">
-                    <div className="text-sm">
-                      <div className="font-mono text-xs text-asphalt/50">{p.location.lat.toFixed(4)}, {p.location.lng.toFixed(4)}</div>
-                      <div className="text-asphalt/70">{p.reportCount} confirmation{p.reportCount > 1 ? "s" : ""}</div>
+                  <div key={p.id} className="flex items-center gap-3 border-b last:border-0 border-asphalt/10 py-2">
+                    {p.images && p.images[0] && (
+                      <img src={p.images[0]} alt="pothole" className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                    )}
+                    <div className="text-sm flex-1 min-w-0">
+                      <div className="text-asphalt truncate">{p.address || `${p.location.lat.toFixed(4)}, ${p.location.lng.toFixed(4)}`}</div>
+                      <div className="text-asphalt/60 text-xs mt-0.5">{p.reportCount} confirmation{p.reportCount > 1 ? "s" : ""}</div>
+                      <AiBadge aiAnalysis={p.aiAnalysis} />
                     </div>
                     <StatusPill status={p.status} />
                   </div>
@@ -493,14 +558,33 @@ function AdminPortal({ backendOnline, setBackendOnline }) {
   const [potholes, setPotholes] = useState([]);
   const [stats, setStats] = useState(null);
   const [crewInputs, setCrewInputs] = useState({});
+  const [lightbox, setLightbox] = useState(null); // { images, index, title }
+  const [aiEnabled, setAiEnabled] = useState(null);
+
+  function openLightbox(p) {
+    const images = p.images && p.images.length > 0 ? p.images : [];
+    if (images.length === 0) return;
+    setLightbox({ images, index: images.length - 1, title: `${p.location.lat.toFixed(5)}, ${p.location.lng.toFixed(5)}` });
+  }
+  function closeLightbox() { setLightbox(null); }
+  function lightboxStep(delta) {
+    setLightbox((lb) => lb && { ...lb, index: (lb.index + delta + lb.images.length) % lb.images.length });
+  }
 
   const load = useCallback(async () => {
     try {
       const [list, s] = await Promise.all([api("/potholes"), api("/potholes/stats")]);
       setPotholes(list); setStats(s); setBackendOnline(true);
+      try {
+        const status = await api("/potholes/ai-status");
+        setAiEnabled(status.enabled);
+      } catch {
+        setAiEnabled(false);
+      }
     } catch (err) {
       if (!isNetworkError(err)) { console.error(err); }
       setBackendOnline(false);
+      setAiEnabled(false); // demo mode never has a real Gemini key configured
       setPotholes(await demoApi.list()); setStats(await demoApi.stats());
     }
   }, [setBackendOnline]);
@@ -576,9 +660,14 @@ function AdminPortal({ backendOnline, setBackendOnline }) {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-widest text-hazard font-semibold">GHMC dashboard</div>
-        <h2 className="font-display text-4xl font-700">Priority repair queue</h2>
+      <div className="mb-6 flex items-start justify-between flex-wrap gap-2">
+        <div>
+          <div className="text-xs uppercase tracking-widest text-hazard font-semibold">GHMC dashboard</div>
+          <h2 className="font-display text-4xl font-700">Priority repair queue</h2>
+        </div>
+        <div className={`text-xs font-mono px-2.5 py-1.5 rounded-lg ${aiEnabled ? "bg-okgreen/10 text-okgreen" : "bg-asphalt/5 text-asphalt/50"}`}>
+          {aiEnabled === null ? "Checking AI status…" : aiEnabled ? "● Gemini image analysis: ON" : "○ Gemini image analysis: OFF (add GEMINI_API_KEY)"}
+        </div>
       </div>
 
       {stats && (
@@ -603,10 +692,25 @@ function AdminPortal({ backendOnline, setBackendOnline }) {
             {potholes.map((p) => (
               <div key={p.id} className="p-4 hover:bg-concrete/50 transition">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <button type="button" onClick={() => openLightbox(p)}
+                    className="relative w-16 h-16 rounded-lg overflow-hidden border border-asphalt/15 bg-asphalt/5 flex-shrink-0 hover:opacity-80 transition">
+                    {p.images && p.images.length > 0 ? (
+                      <img src={p.images[p.images.length - 1]} alt="Reported pothole" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[10px] text-asphalt/40 text-center px-1">No photo</div>
+                    )}
+                    {p.images && p.images.length > 1 && (
+                      <span className="absolute bottom-0 right-0 bg-asphalt text-white text-[10px] font-mono px-1 rounded-tl-md">{p.images.length}</span>
+                    )}
+                  </button>
                   <PriorityDiamond score={p.priorityScore} label={p.priorityLabel} />
                   <div className="flex-1 min-w-[140px]">
-                    <div className="font-mono text-xs text-asphalt/50">{p.location.lat.toFixed(5)}, {p.location.lng.toFixed(5)}</div>
+                    <div className="text-sm text-asphalt truncate" title={p.address || ""}>
+                      {p.address || `${p.location.lat.toFixed(5)}, ${p.location.lng.toFixed(5)}`}
+                    </div>
+                    <div className="font-mono text-[11px] text-asphalt/40">{p.location.lat.toFixed(5)}, {p.location.lng.toFixed(5)}</div>
                     <div className="text-sm text-asphalt/70 mt-0.5">{p.reportCount} report{p.reportCount > 1 ? "s" : ""} · severity {p.severity}/10</div>
+                    <div className="mt-1"><AiBadge aiAnalysis={p.aiAnalysis} /></div>
                     {p.assignedCrew && <div className="text-xs text-hazard font-semibold mt-0.5">Crew: {p.assignedCrew}</div>}
                   </div>
                   <StatusPill status={p.status} />
@@ -626,6 +730,8 @@ function AdminPortal({ backendOnline, setBackendOnline }) {
           </div>
         </div>
       </div>
+
+      {lightbox && <Lightbox lightbox={lightbox} onClose={closeLightbox} onStep={lightboxStep} />}
     </div>
   );
 }
