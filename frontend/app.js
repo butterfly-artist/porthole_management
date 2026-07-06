@@ -1,7 +1,7 @@
 const { useState, useEffect, useRef, useCallback } = React;
 
 /* ============================== CONFIG ============================== */
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://pothole-management-citizenandghmc.onrender.com";
 const HYDERABAD_CENTER = [17.3850, 78.4867];
 const CITIZEN_DEMO_PASSWORD = "citizen-demo-pass"; // used for the passwordless "quick check-in" flow
 
